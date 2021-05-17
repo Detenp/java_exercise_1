@@ -1,4 +1,20 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.TooManyListenersException;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Launcher {
     public static void main(String[] args) {
@@ -15,6 +31,19 @@ public class Launcher {
                 int n = Integer.parseInt(data);
 
                 System.out.println(fibonacci(n));
+            }
+            else if (data.equals("freq")) {
+                System.out.println("Enter the path of the file you want to analyze:");
+                data = scan.nextLine().trim();
+
+                try {
+                    Path path = Paths.get(data);
+
+                    String toPrint = analyse_freq(path);
+                    System.out.println(toPrint);
+                } catch (InvalidPathException | IOException e) {
+                    System.out.println("Unreadable file: " + e.getClass() + " " + e.getMessage());
+                }
             }
             else {
                 System.out.println("Unknown command");
@@ -37,5 +66,28 @@ public class Launcher {
         }
 
         return u1;
+    }
+
+    public static String analyse_freq(Path path) throws IOException {
+        String content = Files.readString(path);
+
+        if (content.isBlank()) {
+            throw new IOException();
+        }
+
+        String[] words = content.toLowerCase().split("\\W");
+
+        Map<String, Long> map = Arrays.stream(words).filter(str -> !str.isBlank()).collect(Collectors.groupingBy(String::toString, Collectors.counting()));
+        Map<String, Long> result = map.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+
+        String toPrint = "";
+        for (String key : result.keySet()) {
+            toPrint += key + " ";
+        }
+
+        toPrint = toPrint.trim();
+
+        return toPrint;
     }
 }
