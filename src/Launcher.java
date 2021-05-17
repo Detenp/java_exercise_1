@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TooManyListenersException;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,17 +78,15 @@ public class Launcher {
 
         String[] words = content.toLowerCase().split("\\W");
 
-        Map<String, Long> map = Arrays.stream(words).filter(str -> !str.isBlank()).collect(Collectors.groupingBy(String::toString, Collectors.counting()));
-        Map<String, Long> result = map.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).limit(3).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+        Map<String, Long> map = Arrays.stream(words)
+                                    .filter(str -> !str.isBlank())
+                                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        String result = map.entrySet().stream()
+                                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                                    .limit(3)
+                                    .map(e -> e.getKey())
+                                    .collect(Collectors.joining(" "));
 
-        String toPrint = "";
-        for (String key : result.keySet()) {
-            toPrint += key + " ";
-        }
-
-        toPrint = toPrint.trim();
-
-        return toPrint;
+        return result;
     }
 }
